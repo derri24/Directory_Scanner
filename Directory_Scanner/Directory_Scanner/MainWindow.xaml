@@ -35,12 +35,12 @@
           
         </TreeView>
 
-        <Button Content="Start" FontSize="12" Width="50" Height="30" Foreground="White" Background="Black" Click="Start_Click">
+        <Button Content="Start" FontSize="12" Width="50" Height="30" Foreground="White" Background="Black" Click="Start_Click" Name="StartBtn">
             <Button.RenderTransform>
                 <TranslateTransform X="295" Y="-185" />
             </Button.RenderTransform>
         </Button>
-        <Button Content="Cancel" FontSize="12" Width="50" Height="30" Foreground="White" Background="Black">
+        <Button Content="Cancel" FontSize="12" Width="50" Height="30" Foreground="White" Background="Black" Click="Cancel_Click" Name="CancelBtn" IsEnabled="False">
             <Button.RenderTransform>
                 <TranslateTransform X="295" Y="-150" />
             </Button.RenderTransform>

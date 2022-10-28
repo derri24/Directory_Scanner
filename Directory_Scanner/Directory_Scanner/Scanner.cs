@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
 using Directory_Scanner.Entities;
 
 namespace Directory_Scanner;
@@ -15,9 +16,9 @@ public class Scanner
     {
         foreach (var child in fileData.Children)
         {
-             SetPercents(child);
-             if (fileData.Size > 0)
-                 child.Percent = Math.Round(child.Size * 100 / fileData.Size, 1);
+            SetPercents(child);
+            if (fileData.Size > 0)
+                child.Percent = Math.Round(child.Size * 100 / fileData.Size, 1);
         }
     }
 
@@ -34,16 +35,34 @@ public class Scanner
         var directoryInfo = new DirectoryInfo(((List<object>) data)[1].ToString());
         FileData fileData = new FileData(Type.Directory, directoryInfo.Name);
         fileData.Children = AnalyzingDirectories(((List<object>) data)[1].ToString());
-        //fileData.Size = fileData.Children.Sum(x => x.Size);
-        //Thread.Sleep(300);
         var fileTree = ((List<object>) data)[0];
         ((ConcurrentBag<FileData>) fileTree).Add(fileData);
+        Interlocked.Decrement(ref runningCount);
     }
 
+    
+    private static int runningCount;
+
+    private static string[] CheckAccess(string path)
+    {
+        string[] filePaths;
+        try
+        {
+            filePaths = Directory.GetFiles(path);
+        }
+        catch
+        {
+            return null;
+        }
+        return filePaths;
+    }
     private static ConcurrentBag<FileData> AnalyzingDirectories(string path)
     {
         ConcurrentBag<FileData> fileTree = new ConcurrentBag<FileData>();
-        var filePaths = Directory.GetFiles(path);
+        string[] filePaths = CheckAccess(path);
+        if (filePaths.Length==0)
+            return fileTree;
+
         foreach (var filePath in filePaths)
         {
             var fileInfo = new FileInfo(filePath);
@@ -51,37 +70,53 @@ public class Scanner
             fileTree.Add(fileData);
         }
 
-        var directoryPaths = Directory.GetDirectories(path);
+        string[] directoryPaths = Directory.GetDirectories(path);
         foreach (var directoryPath in directoryPaths)
         {
+            if (token.IsCancellationRequested)
+                return fileTree;
+            
             List<object> data = new List<object>() {fileTree, directoryPath};
-            Thread thread = new Thread(DirectoryProcessing);
-            thread.Start(data);
-
-            // var directoryInfo = new DirectoryInfo(directoryPath);
-            // FileData fileData = new FileData(Type.Directory, directoryInfo.Name);
-            // fileData.Children = AnalyzingDirectories(directoryPath);
-            // fileData.Size = fileData.Children.Sum(x => x.Size);
-            // fileTree.Add(fileData);
+            Interlocked.Increment(ref runningCount);
+            Monitor.Enter(data);
+            ThreadPool.QueueUserWorkItem(DirectoryProcessing, data);
         }
 
         return fileTree;
     }
 
-
-    public static ConcurrentBag<FileData> GetFileTree(string path)
+    private static CancellationTokenSource cancelTokenSource;
+    private static CancellationToken token;
+    public static async Task<FileData> GetFileTree(string path)
     {
-        var directoryInfo = new DirectoryInfo(path);
-        FileData rootFileTree = new FileData(Type.Directory, directoryInfo.Name);
-        rootFileTree.Children = AnalyzingDirectories(path);
-        //rootFileTree.Size = rootFileTree.Children.Sum(x => x.Size);
-        rootFileTree.Percent = 100;
-        Thread.Sleep(2000);
-        ConcurrentBag<FileData> fileTree = new ConcurrentBag<FileData>();
-        fileTree.Add(rootFileTree);
-        SetFolderSize(rootFileTree);
-        //Thread.Sleep(300);
-        SetPercents(rootFileTree);
-        return fileTree;
+        FileData rootFileTree = null;
+        await Task.Run(() =>
+        {
+            var directoryInfo = new DirectoryInfo(path);
+            rootFileTree = new FileData(Type.Directory, directoryInfo.Name);
+            rootFileTree.Children = AnalyzingDirectories(path);
+
+            rootFileTree.Percent = 100;
+            while (runningCount > 0) { }
+
+            if (token.IsCancellationRequested)
+            {
+                cancelTokenSource.Dispose();
+                token=new CancellationToken();
+            }
+
+            SetFolderSize(rootFileTree);
+            SetPercents(rootFileTree);
+        });
+        return rootFileTree;
+    }
+
+
+    public static void CancelScan()
+    {
+        cancelTokenSource = new CancellationTokenSource();
+        token = cancelTokenSource.Token;
+        cancelTokenSource.Cancel();
     }
 }
+//отмена количество потоков

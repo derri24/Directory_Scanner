@@ -13,6 +13,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -20,6 +21,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Directory_Scanner.Entities;
 using Ookii.Dialogs.Wpf;
+using MessageBox = System.Windows.MessageBox;
 
 namespace Directory_Scanner
 {
@@ -35,35 +37,54 @@ namespace Directory_Scanner
             InitializeComponent();
         }
 
-        public static ObservableCollection<FileDataModel> ConvertConcurrentBagToObservableCollection(
-            ConcurrentBag<FileData> fileDatas)
+        public static FileDataModel ConvertToModel(
+            FileData fileData)
         {
-            ObservableCollection<FileDataModel> convertedFileData = new ObservableCollection<FileDataModel>();
-            foreach (var fileData in fileDatas)
+            string emoje;
+            if (fileData.Type == Type.Directory)
+                emoje = "📁";
+            else
+                emoje = "📄";
+            FileDataModel fileDataModel =
+                new FileDataModel(fileData.Type, fileData.Name, fileData.Percent, fileData.Size, emoje);
+
+            foreach (var child in fileData.Children)
             {
-                string emoje;
-                if (fileData.Type == Type.Directory)
-                    emoje = "📁";
-                else
-                    emoje = "📄";
-                
-                FileDataModel fileDataModel = new FileDataModel(fileData.Type, fileData.Name, fileData.Percent,fileData.Size, emoje);
-                fileDataModel.Children= ConvertConcurrentBagToObservableCollection(fileData.Children);
-                convertedFileData.Add(fileDataModel);
+                fileDataModel.Children.Add(ConvertToModel(child));
             }
 
-            return convertedFileData;
+            return fileDataModel;
         }
 
-        private void Start_Click(object sender, RoutedEventArgs e)
+        private async void Start_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new VistaFolderBrowserDialog();
             if (dialog.ShowDialog() == true)
             {
+                StartBtn.IsEnabled = false;
+                StartBtn.Foreground = Brushes.DimGray;
+                
+                CancelBtn.IsEnabled = true;
+                CancelBtn.Foreground=Brushes.White;
+                
                 string path = dialog.SelectedPath;
-                var fileTree = ConvertConcurrentBagToObservableCollection(Scanner.GetFileTree(path));
+                var rootFileTree = ConvertToModel(await Scanner.GetFileTree(path));
+                ObservableCollection<FileDataModel> fileTree = new ObservableCollection<FileDataModel>();
+                fileTree.Add(rootFileTree);
                 treeView.ItemsSource = fileTree.ToList();
             }
+            StartBtn.IsEnabled=true;
+            StartBtn.Foreground=Brushes.White;
+            
+            CancelBtn.IsEnabled = false;
+            CancelBtn.Foreground = Brushes.DimGray;
+        }
+
+        private void Cancel_Click(object sender, RoutedEventArgs e)
+        {
+            Scanner.CancelScan();
+            CancelBtn.IsEnabled = false;
+            CancelBtn.Foreground = Brushes.DimGray;
         }
     }
 }
