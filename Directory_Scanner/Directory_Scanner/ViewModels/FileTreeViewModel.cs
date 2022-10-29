@@ -36,7 +36,7 @@ public class FileTreeViewModel : INotifyPropertyChanged
     {
         get
         {
-            return startCommand ??
+            return startCommand =
                    (startCommand = new RelayCommand(async obj =>
                    {
                        if (dialogService.OpenDirectoryDialog() == true)
@@ -69,7 +69,7 @@ public class FileTreeViewModel : INotifyPropertyChanged
     {
         get
         {
-            return cancelCommand ??
+            return cancelCommand =
                    (cancelCommand = new RelayCommand(async obj =>
                    {
                        Scanner.CancelScan();

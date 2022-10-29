@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+
 namespace Directory_Scanner.Library.Entities;
 
 public class Scanner
@@ -50,11 +51,13 @@ public class Scanner
         {
             return null;
         }
+
         return filePaths;
     }
 
     private static CancellationTokenSource cancelTokenSource;
     private static CancellationToken token;
+
     private static ConcurrentBag<FileData> AnalyzingDirectories(string path)
     {
         ConcurrentBag<FileData> fileTree = new ConcurrentBag<FileData>();
@@ -79,6 +82,7 @@ public class Scanner
             Interlocked.Increment(ref runningCount);
             ThreadPool.QueueUserWorkItem(DirectoryProcessing, data);
         }
+
         return fileTree;
     }
 
@@ -92,13 +96,16 @@ public class Scanner
             rootFileTree.Children = AnalyzingDirectories(path);
 
             rootFileTree.Percent = 100;
-            while (runningCount > 0 || ThreadPool.PendingWorkItemCount > 0) { }
+            while (runningCount > 0 || ThreadPool.PendingWorkItemCount > 0)
+            {
+            }
 
             if (token.IsCancellationRequested)
             {
                 cancelTokenSource.Dispose();
                 token = new CancellationToken();
             }
+
             SetFolderSize(rootFileTree);
             SetPercents(rootFileTree);
         });
