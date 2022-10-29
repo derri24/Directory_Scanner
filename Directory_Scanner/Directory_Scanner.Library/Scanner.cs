@@ -1,15 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using Directory_Scanner.Entities;
-
-namespace Directory_Scanner;
+namespace Directory_Scanner.Library.Entities;
 
 public class Scanner
 {

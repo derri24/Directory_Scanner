@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Directory_Scanner.Library.Entities;
 using Directory_Scanner.Services;
 
 namespace Directory_Scanner;

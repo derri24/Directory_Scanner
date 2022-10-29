@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace Directory_Scanner.Entities;
+namespace Directory_Scanner.Library.Entities;
 
 public class FileData
 {

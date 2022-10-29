@@ -12,4 +12,8 @@
       <PackageReference Include="Ookii.Dialogs" Version="5.0.1" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Directory_Scanner.Library\Directory_Scanner.Library.csproj" />
+    </ItemGroup>
+
 </Project>

@@ -1,4 +1,5 @@
-﻿using Directory_Scanner.Entities;
+﻿
+using Directory_Scanner.Library.Entities;
 
 namespace Directory_Scanner.Services;
 
