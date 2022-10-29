@@ -9,7 +9,7 @@
         Title="Directory Scanner" Height="450" Width="700">
     <Grid>
 
-        <TreeView Name="treeView">
+        <TreeView ItemsSource="{Binding Path=FileDataModels}">
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                     <StackPanel Orientation="Horizontal">
@@ -32,15 +32,16 @@
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
                 </Style>
             </TreeView.ItemContainerStyle>
-          
+
         </TreeView>
 
-        <Button Content="Start" FontSize="12" Width="50" Height="30" Foreground="White" Background="Black" Click="Start_Click" Name="StartBtn">
+        <Button Command="{Binding StartCommand}" Content="Start" FontSize="12" Width="50" Height="30"
+                Foreground="White" Background="Black" Name="StartBtn">
             <Button.RenderTransform>
                 <TranslateTransform X="295" Y="-185" />
             </Button.RenderTransform>
         </Button>
-        <Button Content="Cancel" FontSize="12" Width="50" Height="30" Foreground="Black" Background="Black" Click="Cancel_Click" Name="CancelBtn" IsEnabled="False">
+        <Button Command="{Binding CancelCommand}" Content="Cancel" FontSize="12" Width="50" Height="30" Foreground="Black" Background="Black" Name="CancelBtn" IsEnabled="False">
             <Button.RenderTransform>
                 <TranslateTransform X="295" Y="-150" />
             </Button.RenderTransform>
