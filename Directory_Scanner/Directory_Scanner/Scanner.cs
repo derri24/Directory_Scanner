@@ -14,9 +14,9 @@ namespace Directory_Scanner;
 public class Scanner
 {
     private const int MaxThredCount = 1000;
-    
-    private static Semaphore  semaphore = new Semaphore(MaxThredCount, MaxThredCount);
-    
+
+    private static Semaphore semaphore = new Semaphore(MaxThredCount, MaxThredCount);
+
     private static void SetPercents(FileData fileData)
     {
         foreach (var child in fileData.Children)
@@ -34,9 +34,10 @@ public class Scanner
         if (fileData.Type == Type.Directory)
             fileData.Size = fileData.Children.Sum(x => x.Size);
     }
-
+    
     private static void DirectoryProcessing(object data)
     {
+        
         semaphore.WaitOne();
         var directoryInfo = new DirectoryInfo(((List<object>) data)[1].ToString());
         FileData fileData = new FileData(Type.Directory, directoryInfo.Name);
@@ -44,11 +45,14 @@ public class Scanner
         var fileTree = ((List<object>) data)[0];
         ((ConcurrentBag<FileData>) fileTree).Add(fileData);
         Interlocked.Decrement(ref runningCount);
-        Thread.Sleep(3000);
+        
+      // var a= System.Diagnostics.Process.GetCurrentProcess().Threads.Count;
+      // System.Diagnostics.Debug.WriteLine(a);
+        //Thread.Sleep(3000);
         semaphore.Release();
     }
 
-    
+
     private static int runningCount;
 
     private static string[] CheckAccess(string path)
@@ -62,6 +66,7 @@ public class Scanner
         {
             return null;
         }
+
         return filePaths;
     }
 
@@ -69,37 +74,40 @@ public class Scanner
     {
         ConcurrentBag<FileData> fileTree = new ConcurrentBag<FileData>();
         string[] filePaths = CheckAccess(path);
-        if (filePaths.Length==0)
+        if (filePaths == null)
             return fileTree;
-
+        
         foreach (var filePath in filePaths)
         {
             var fileInfo = new FileInfo(filePath);
             FileData fileData = new FileData(Type.File, fileInfo.Name, fileInfo.Length);
             fileTree.Add(fileData);
         }
-
+        
         string[] directoryPaths = Directory.GetDirectories(path);
         foreach (var directoryPath in directoryPaths)
         {
             if (token.IsCancellationRequested)
                 return fileTree;
-            
+
             List<object> data = new List<object>() {fileTree, directoryPath};
-            Interlocked.Increment(ref runningCount);
-            Monitor.Enter(data);
-            
             //new Thread(DirectoryProcessing).Start(data);
+            Interlocked.Increment(ref runningCount);
             ThreadPool.QueueUserWorkItem(DirectoryProcessing, data);
         }
-
+        
+        
         return fileTree;
     }
 
     private static CancellationTokenSource cancelTokenSource;
     private static CancellationToken token;
+
+
+    private static Stopwatch sw = new Stopwatch();
     public static async Task<FileData> GetFileTree(string path)
     {
+        sw.Start();
         FileData rootFileTree = null;
         await Task.Run(() =>
         {
@@ -108,20 +116,22 @@ public class Scanner
             rootFileTree.Children = AnalyzingDirectories(path);
 
             rootFileTree.Percent = 100;
-            while (runningCount > 0 || ThreadPool.PendingWorkItemCount>0) { }
+            while (runningCount > 0 || ThreadPool.PendingWorkItemCount > 0)
+            {
+            }
 
             if (token.IsCancellationRequested)
             {
                 cancelTokenSource.Dispose();
-                token=new CancellationToken();
+                token = new CancellationToken();
             }
-
             SetFolderSize(rootFileTree);
             SetPercents(rootFileTree);
         });
+        sw.Stop();
+        System.Diagnostics.Debug.WriteLine("Time: "+sw.ElapsedMilliseconds/1000.0);
         return rootFileTree;
     }
-    // threadpool??
 
     public static void CancelScan()
     {
