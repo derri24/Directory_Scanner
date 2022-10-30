@@ -96,9 +96,7 @@ public class Scanner
             rootFileTree.Children = AnalyzingDirectories(path);
 
             rootFileTree.Percent = 100;
-            while (runningCount > 0 || ThreadPool.PendingWorkItemCount > 0)
-            {
-            }
+            while (runningCount > 0 || ThreadPool.PendingWorkItemCount > 0) { }
 
             if (token.IsCancellationRequested)
             {

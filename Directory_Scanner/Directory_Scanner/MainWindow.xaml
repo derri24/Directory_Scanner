@@ -36,15 +36,12 @@
         </TreeView>
 
         <Button Command="{Binding StartCommand}" Content="Start" FontSize="12" Width="50" Height="30"
-                Foreground="White" Background="Black" Name="StartBtn">
-            <Button.RenderTransform>
-                <TranslateTransform X="295" Y="-185" />
-            </Button.RenderTransform>
+                Foreground="White" Background="Black" Name="StartBtn" Margin="0 20 25 0" HorizontalAlignment="Right"
+                VerticalAlignment="Top">
         </Button>
-        <Button Command="{Binding CancelCommand}" Content="Cancel" FontSize="12" Width="50" Height="30" Foreground="Black" Background="Black" Name="CancelBtn" IsEnabled="False">
-            <Button.RenderTransform>
-                <TranslateTransform X="295" Y="-150" />
-            </Button.RenderTransform>
+        <Button Command="{Binding CancelCommand}" Content="Cancel" FontSize="12" Width="50" Height="30"
+                Foreground="Black" Background="Black" Name="CancelBtn" IsEnabled="False" Margin="0 55 25 0"
+                HorizontalAlignment="Right" VerticalAlignment="Top">
         </Button>
     </Grid>
 </Window>
