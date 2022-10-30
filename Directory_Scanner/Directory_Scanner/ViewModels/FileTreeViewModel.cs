@@ -37,28 +37,28 @@ public class FileTreeViewModel : INotifyPropertyChanged
         get
         {
             return startCommand =
-                   (startCommand = new RelayCommand(async obj =>
-                   {
-                       if (dialogService.OpenDirectoryDialog() == true)
-                       {
-                           StartBtn.IsEnabled = false;
-                           StartBtn.Foreground = Brushes.DimGray;
+                (startCommand = new RelayCommand(async obj =>
+                {
+                    if (dialogService.OpenDirectoryDialog() == true)
+                    {
+                        StartBtn.IsEnabled = false;
+                        StartBtn.Foreground = Brushes.DimGray;
 
-                           CancelBtn.IsEnabled = true;
-                           CancelBtn.Foreground = Brushes.White;
+                        CancelBtn.IsEnabled = true;
+                        CancelBtn.Foreground = Brushes.White;
 
-                           var rootFileTree =
-                               convertService.ConvertToModel(await Scanner.GetFileTree(dialogService.DirectoryPath));
-                           FileDataModels.Clear();
-                           FileDataModels.Add(rootFileTree);
-                       }
+                        var rootFileTree =
+                            convertService.ConvertToModel(await Scanner.GetFileTree(dialogService.DirectoryPath));
+                        FileDataModels.Clear();
+                        FileDataModels.Add(rootFileTree);
+                    }
 
-                       StartBtn.IsEnabled = true;
-                       StartBtn.Foreground = Brushes.White;
+                    StartBtn.IsEnabled = true;
+                    StartBtn.Foreground = Brushes.White;
 
-                       CancelBtn.IsEnabled = false;
-                       CancelBtn.Foreground = Brushes.DimGray;
-                   }));
+                    CancelBtn.IsEnabled = false;
+                    CancelBtn.Foreground = Brushes.DimGray;
+                }));
         }
     }
 
@@ -70,12 +70,12 @@ public class FileTreeViewModel : INotifyPropertyChanged
         get
         {
             return cancelCommand =
-                   (cancelCommand = new RelayCommand(async obj =>
-                   {
-                       Scanner.CancelScan();
-                       CancelBtn.IsEnabled = false;
-                       CancelBtn.Foreground = Brushes.DimGray;
-                   }));
+                (cancelCommand = new RelayCommand(async obj =>
+                {
+                    Scanner.CancelScan();
+                    CancelBtn.IsEnabled = false;
+                    CancelBtn.Foreground = Brushes.DimGray;
+                }));
         }
     }
 
